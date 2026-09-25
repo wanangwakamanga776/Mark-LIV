@@ -2981,22 +2981,16 @@ class MainWindow(QMainWindow):
         root = QVBoxLayout(central)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
-        root.addWidget(self._build_header())
 
-        body = QHBoxLayout()
-        body.setContentsMargins(0, 0, 0, 0)
-        body.setSpacing(0)
-
-        self._left_panel = self._build_left_panel()
-        body.addWidget(self._left_panel, stretch=0)
-
-        # Center column: HUD + resizable content panel via QSplitter
+        # The HUD is intentionally the entire main surface. Controls and status
+        # utilities stay in the floating drawer so they never compete with the
+        # core, waveform, or avatar for visual attention.
         self.hud = HudCanvas(face_path, _display)
         self.hud.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self._content_panel = self._build_content_panel()
         self._quiz_panel = self._build_quiz_panel()
 
-        # Live camera container — replaces HUD when camera stream is active
+        # Live camera container — replaces HUD when camera stream is active.
         _cam_cont = QWidget()
         _cam_cont.setStyleSheet("background: #000308;")
         _cam_v = QVBoxLayout(_cam_cont)
@@ -3004,19 +2998,17 @@ class MainWindow(QMainWindow):
         _cam_v.setSpacing(0)
         _cam_hdr = QHBoxLayout()
         _cam_hdr.setContentsMargins(8, 5, 8, 5)
-        _cam_title = QLabel("◈  CAMERA FEED")
+        _cam_title = QLabel("CAMERA FEED")
         _cam_title.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
         _cam_title.setStyleSheet(f"color: {C.PRI}; background: transparent;")
         _cam_hdr.addWidget(_cam_title)
         _cam_hdr.addStretch()
-        _cam_x = QPushButton("✕  CLOSE")
+        _cam_x = QPushButton("CLOSE")
         _cam_x.setFont(QFont("Courier New", 8, QFont.Weight.Bold))
         _cam_x.setCursor(Qt.CursorShape.PointingHandCursor)
         _cam_x.setStyleSheet(f"""
-            QPushButton {{
-                color: {C.TEXT_DIM}; background: transparent;
-                border: none; padding: 2px 6px;
-            }}
+            QPushButton {{ color: {C.TEXT_DIM}; background: transparent;
+                border: none; padding: 2px 6px; }}
             QPushButton:hover {{ color: {C.PRI}; }}
         """)
         _cam_x.clicked.connect(self.stop_camera_stream)
@@ -3030,20 +3022,15 @@ class MainWindow(QMainWindow):
         )
         _cam_v.addWidget(self._cam_live_lbl, stretch=1)
 
-        # Stack: 0 = animated HUD, 1 = live camera
+        # Stack: 0 = animated HUD, 1 = live camera.
         self._hud_cam_stack = QStackedWidget()
         self._hud_cam_stack.addWidget(self.hud)
         self._hud_cam_stack.addWidget(_cam_cont)
 
         self._center_split = QSplitter(Qt.Orientation.Vertical)
         self._center_split.setStyleSheet(f"""
-            QSplitter::handle {{
-                background: {C.BORDER};
-                height: 4px;
-            }}
-            QSplitter::handle:hover {{
-                background: {C.PRI_DIM};
-            }}
+            QSplitter::handle {{ background: {C.BORDER}; height: 4px; }}
+            QSplitter::handle:hover {{ background: {C.PRI_DIM}; }}
         """)
         self._center_split.addWidget(self._hud_cam_stack)
         self._center_split.addWidget(self._content_panel)
@@ -3051,13 +3038,8 @@ class MainWindow(QMainWindow):
         self._center_split.setStretchFactor(0, 3)
         self._center_split.setStretchFactor(1, 1)
         self._center_split.setCollapsible(0, False)
-        body.addWidget(self._center_split, stretch=5)
+        root.addWidget(self._center_split, stretch=1)
 
-        self._right_panel = self._build_right_panel()
-        body.addWidget(self._right_panel, stretch=0)
-
-        root.addLayout(body, stretch=1)
-        root.addWidget(self._build_footer())
 
         # Quick-access drawer (floating overlay, built after central widget layout is done)
         self._quick_drawer = self._build_quick_drawer()
@@ -5331,6 +5313,14 @@ class JarvisUI:
             self._win.hud.set_audio_level(level)
         except Exception:
             pass
+
+    def glance(self, dx: float, dy: float, hold: float = 1.1) -> None:
+        """Ask the avatar to look somewhere for a moment."""
+        try:
+            self._win.hud.glance(dx, dy, hold)
+        except Exception:
+            pass
+
 
     def glance(self, dx: float, dy: float, hold: float = 1.1) -> None:
         """Ask the avatar to look somewhere for a moment (see HoloAvatar.glance)."""
